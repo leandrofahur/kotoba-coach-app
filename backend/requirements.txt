@@ -1,0 +1,6 @@
+fastapi[standard]
+langchain
+langchain-openai
+crewai
+chromadb
+python-dotenv
