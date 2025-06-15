@@ -1,10 +1,5 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-import tempfile
-from utils.audio import score_user_audio
-
-# Import the audio utils
-from utils.audio import AUDIO_PATH
 
 app = FastAPI(
     title="KotobaCoach API",
@@ -21,20 +16,12 @@ app = FastAPI(
 router = APIRouter(prefix="/api/v1")
 
 @router.get("/")
-def read_root():
-    print(AUDIO_PATH)
+def read_root():    
     return {"message": "Hello, World!"}
 
-@router.post("/score")
-async def get_score(file: UploadFile = File(...)):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
-        temp_path = temp_audio.name
-        content = await file.read()
-        temp_audio.write(content)
-
-    score = score_user_audio(temp_path)
-    return {"score": score}
-
+@router.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 # Add the router to the app
 app.include_router(router)
