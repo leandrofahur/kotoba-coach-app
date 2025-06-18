@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter
+import os
+from fastapi import FastAPI, APIRouter, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -18,6 +19,10 @@ router = APIRouter(prefix="/api/v1")
 @router.get("/")
 def read_root():    
     return {"message": "Hello, World!"}
+
+@router.post("/score")
+def score_audio(file: UploadFile = File(...)):
+    return {"filename": file.filename}
 
 @router.get("/health")
 def health_check():
