@@ -3,6 +3,7 @@ from utils.session import validate_session_token
 
 from services.phrase_service import get_phrase_by_id
 from services.audio_service import prepare_audio
+from services.whisper_service import transcribe_audio
 
 router = APIRouter(prefix="/pronunciation", 
                    tags=["Pronunciation"],
@@ -19,10 +20,12 @@ async def evaluate_pronunciation(phrase_id: str =Form(...), audio_file: UploadFi
     
     #  process the audio file:
     audio_path = await prepare_audio(audio_file)
+    transcription = transcribe_audio(audio_path)
+    print(f"🚨 transcription: {transcription} | 🚨")
 
     # return the phrase:
-    return {
-        "received": True,
+    return {        
         "phrase": phrase,
+        "transcription": transcription,
         "audio_path": audio_path
     }
