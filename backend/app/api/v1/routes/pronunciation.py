@@ -3,9 +3,9 @@ from utils.session import validate_session_token
 
 router = APIRouter(prefix="/pronunciation", 
                    tags=["Pronunciation"],
-                #    dependencies=[Depends(validate_session_token)]
+                #    dependencies=[Depends(validate_session_token)]     # TODO: Uncomment this for production
 )
 
 @router.post("/evaluate")
-def evaluate_pronunciation():    
+def evaluate_pronunciation():
     return {"message": "Hello from evaluate pronunciation"}
