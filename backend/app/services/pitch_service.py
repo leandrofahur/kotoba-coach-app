@@ -61,11 +61,12 @@
 
 import librosa
 import numpy as np
+import math
 
 def extract_pitch_librosa(audio_path: str, sr: int = 16000) -> list[float]:
     """
     Extract pitch (F0 in Hz) using librosa's pyin algorithm.
-    Returns a list of float pitch values (0.0 where unvoiced).
+    Returns a list of float pitch values (0.0 where unvoiced or invalid).
     """
     y, sr = librosa.load(audio_path, sr=sr)
 
@@ -76,7 +77,12 @@ def extract_pitch_librosa(audio_path: str, sr: int = 16000) -> list[float]:
         sr=sr
     )
 
-    # Replace NaNs (unvoiced) with 0.0
-    pitch_values = [float(p) if p is not None else 0.0 for p in f0]
+    # Replace NaNs or invalid values with 0.0
+    pitch_values = []
+    for val in f0:
+        if val is None or not math.isfinite(val):
+            pitch_values.append(0.0)
+        else:
+            pitch_values.append(float(val))
 
     return pitch_values
