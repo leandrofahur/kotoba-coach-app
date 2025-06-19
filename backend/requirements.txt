@@ -5,3 +5,4 @@ python-dotenv==1.0.1
 librosa==0.11.0
 pyopenjtalk==0.4.1
 openai-whisper==20240930
+ffmpeg-python==0.2.0

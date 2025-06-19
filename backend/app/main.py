@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.v1.endpoints import system
+from api.v1.routes import system, pronunciation
 
 app = FastAPI(
     title="KotobaCoach API",
@@ -17,6 +17,7 @@ app = FastAPI(
 # Add the router to the app
 router = APIRouter(prefix="/api/v1")
 router.include_router(system.router)
+router.include_router(pronunciation.router)
 
 # Add the router to the app
 app.include_router(router)
