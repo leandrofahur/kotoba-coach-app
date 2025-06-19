@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libsndfile1 \
     libasound2 \
-    libflac8 \
+    libflac-dev \
     libvorbis0a \
     libopenblas-dev \
     liblapack-dev \
