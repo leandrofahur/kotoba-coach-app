@@ -22,3 +22,4 @@ def get_all_phrases() -> List[Phrase]:
 
 def get_phrase_by_id(id: str) -> Phrase:
     return next((phrase for phrase in get_all_phrases() if phrase.id == id), None)
+
