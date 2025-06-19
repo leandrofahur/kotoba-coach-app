@@ -1,8 +1,7 @@
-import os
 from fastapi import FastAPI, APIRouter, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-import pyopenjtalk
+from api.v1.endpoints import evaluate, phoneme, system
 
 app = FastAPI(
     title="KotobaCoach API",
@@ -18,23 +17,15 @@ app = FastAPI(
 # Add the router to the app
 router = APIRouter(prefix="/api/v1")
 
-@router.get("/")
-def read_root():    
-    return {"message": "Hello, World!"}
+router.include_router(evaluate.router)
+router.include_router(phoneme.router)
+router.include_router(system.router)
 
-@router.post("/score")
-def score_audio(file: UploadFile = File(...)):
-    return {"filename": file.filename}
-
-@router.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-@app.get("/test-phonemes")
-def get_phonemes():
-    phrase = "おはようございます"
-    phonemes = pyopenjtalk.g2p(phrase, kana=False)
-    return {"phrase": phrase, "phonemes": phonemes}
+# @app.get("/test-phonemes")
+# def get_phonemes():
+#     phrase = "おはようございます"
+#     phonemes = pyopenjtalk.g2p(phrase, kana=False)
+#     return {"phrase": phrase, "phonemes": phonemes}
 
 # Add the router to the app
 app.include_router(router)
