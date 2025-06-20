@@ -19,17 +19,17 @@ export default function LessonBlock({ lessonNumber, lessonStatus = LessonStatus.
     const mapLessonStatusToTextColor = (status: LessonStatus) => {
         switch (status) {        
             case LessonStatus.NOT_STARTED:
-                return "text-gray-dark";
+                return "text-gray";
             default:
                 return "text-white";
         }
     }
 
   return (
-    <Card className={`w-full max-w-md  ${mapLessonStatusToColor(lessonStatus)}`} >
+    <Card className={`w-full max-w-md shadow-[#C7C7C7] ${mapLessonStatusToColor(lessonStatus)}`} >
       <CardContent>
         <div className="flex justify-between">
-            <p className={`text-center text-[20px] ${mapLessonStatusToTextColor(lessonStatus)}`}>Lesson {lessonNumber}</p>
+            <p className={`text-center ${mapLessonStatusToTextColor(lessonStatus)}`}>Lesson {lessonNumber}</p>
             {lessonStatus !== LessonStatus.NOT_STARTED && <LessonBadge lessonStatus={lessonStatus} />}
         </div>
       </CardContent>

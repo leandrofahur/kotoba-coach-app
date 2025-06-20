@@ -23,14 +23,14 @@ function LessonBadge({ lessonStatus }: { lessonStatus: LessonStatus }) {
     const mapLessonStatusToIcon = (status: LessonStatus) => {
         switch (status) {
             case LessonStatus.COMPLETED:
-                return <Check width={20} height={20}/>;
+                return <Check className="w-4 h-4"/>;
             case LessonStatus.IN_PROGRESS:
-                return <Mic width={20} height={20}/>;
+                return <Mic className="w-4 h-4"/>;
         }
     }
 
     return (
-        <Badge className={`text-center capitalize ${mapLessonStatusToBadge(lessonStatus)}`}>
+        <Badge className={`text-center capitalize text-[12px] fond-[600] leading-[22px]  ${mapLessonStatusToBadge(lessonStatus)}`}>
             {mapLessonStatusToIcon(lessonStatus)} {lessonStatus.replace('-', ' ')}
         </Badge>
     )
