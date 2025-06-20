@@ -1,12 +1,15 @@
-import { Button } from "@/components/ui/button"
+import LessonBlockList from "@/components/LessonBlockList/LessonBlockList"
+import { LessonStatus } from "@/components/LessonBlock/LessonBlock.types"
 
 function App() {
   return (    
-    <div className="flex flex-col items-center justify-center h-screen bg-beige-light">
-      <h1 className="text-3xl font-bold underline text-primary-dark">Hello World</h1>
-      <p className="text-gray-dark">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
-      <Button>Click me</Button>
-    </div>
+    <LessonBlockList lessonBlocks={[
+      { lessonNumber: 1, lessonStatus: LessonStatus.COMPLETED },
+      { lessonNumber: 2, lessonStatus: LessonStatus.IN_PROGRESS },
+      { lessonNumber: 3, lessonStatus: LessonStatus.NOT_STARTED },
+      { lessonNumber: 4, lessonStatus: LessonStatus.NOT_STARTED },
+      { lessonNumber: 5, lessonStatus: LessonStatus.NOT_STARTED },
+    ]} />
   )
 }
 
