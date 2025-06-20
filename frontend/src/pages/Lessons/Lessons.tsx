@@ -11,9 +11,7 @@ const lessonBlocks = [
   { lessonNumber: 5, lessonStatus: LessonStatus.NOT_STARTED },
 ]
 
-function Lessons() {
-  const { id } = useParams<{ id: string }>();
-    
+function Lessons() {  
   return (    
     <LessonBlockList lessonBlocks={lessonBlocks} />        
   )

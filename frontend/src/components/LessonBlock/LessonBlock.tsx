@@ -8,7 +8,9 @@ export default function LessonBlock({ lessonNumber, lessonStatus = LessonStatus.
     const navigate = useNavigate();
 
     const handleClick = () => {
-        navigate(`/lesson/${lessonNumber}`);
+        if(lessonStatus !== LessonStatus.NOT_STARTED) {
+            navigate(`/lessons/${lessonNumber}`);
+        }
     };
 
     const mapLessonStatusToColor = (status: LessonStatus) => {
