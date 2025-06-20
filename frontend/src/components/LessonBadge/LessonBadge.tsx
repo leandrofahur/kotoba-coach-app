@@ -1,9 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { LessonStatus } from "@/components/LessonBlock/LessonBlock.types";
 
-// import IconCheckWhite from "@/assets/icons/check.svg";
-// import IconProgressWhite from "@/assets/icons/progress.svg";
-
 import {Check, Mic} from 'lucide-react'
 
 

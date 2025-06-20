@@ -17,6 +17,7 @@ export default defineConfig({
       "@/components/*": path.resolve(__dirname, "./src/components/*"),
       "@/lib/*": path.resolve(__dirname, "./src/lib/*"),
       "@/assets/*": path.resolve(__dirname, "./src/assets/*"),
+      "@/pages/*": path.resolve(__dirname, "./src/pages/*"),
     },
   },
   assetsInclude: ['**/*.svg'],
