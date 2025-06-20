@@ -1,11 +1,11 @@
-FROM node:22
+from node:22
 
-WORKDIR /app
+workdir /app
 
-COPY package.json .
+copy package.json .
 
-RUN npm install
+run npm install
 
-COPY . .
+copy . .
 
-EXPOSE 5173
+expose 5173
