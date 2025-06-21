@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from models.phrase import Phrase
 from services.phrase_service import get_all_phrases, get_phrase_by_id
 
-router = APIRouter(prefix="/phrase", tags=["Phrase"])
+router = APIRouter(prefix="/phrases", tags=["Phrase"])
 
 @router.get("/")
 def get_phrases() -> List[Phrase]:
