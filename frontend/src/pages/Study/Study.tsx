@@ -17,6 +17,7 @@ function Study() {
     const [feedback, setFeedback] = useState<string>("");
     const [isProcessing, setIsProcessing] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isSlowPlaying, setIsSlowPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const { startStreaming, stopStreaming } = useAudioStream(id!);
@@ -57,7 +58,14 @@ function Study() {
         if (!lesson) return;
         
         try {
+            // Stop any current playback
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+            
             setIsPlaying(true);
+            setIsSlowPlaying(false);
             
             // Create audio element if it doesn't exist
             if (!audioRef.current) {
@@ -65,24 +73,28 @@ function Study() {
                 
                 audioRef.current.onended = () => {
                     setIsPlaying(false);
+                    setIsSlowPlaying(false);
                 };
                 
                 audioRef.current.onerror = () => {
                     console.error('Audio playback error');
                     setIsPlaying(false);
+                    setIsSlowPlaying(false);
                 };
             }
             
-            // Set the audio source
+            // Set the audio source and normal speed
             audioRef.current.src = `http://localhost:8000/api/v1/audio-stream/audio/${lesson.id}`;
+            audioRef.current.playbackRate = 1.0;
             
             // Play the audio
             await audioRef.current.play();
-            console.log('Playing teacher audio');
+            console.log('Playing teacher audio (normal speed)');
             
         } catch (error) {
             console.error('Error playing audio:', error);
             setIsPlaying(false);
+            setIsSlowPlaying(false);
         }
     }
 
@@ -90,7 +102,14 @@ function Study() {
         if (!lesson) return;
         
         try {
-            setIsPlaying(true);
+            // Stop any current playback
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+            
+            setIsPlaying(false);
+            setIsSlowPlaying(true);
             
             // Create audio element if it doesn't exist
             if (!audioRef.current) {
@@ -98,27 +117,28 @@ function Study() {
                 
                 audioRef.current.onended = () => {
                     setIsPlaying(false);
+                    setIsSlowPlaying(false);
                 };
                 
                 audioRef.current.onerror = () => {
                     console.error('Audio playback error');
                     setIsPlaying(false);
+                    setIsSlowPlaying(false);
                 };
             }
             
-            // Set the audio source
+            // Set the audio source and slow speed
             audioRef.current.src = `http://localhost:8000/api/v1/audio-stream/audio/${lesson.id}`;
-            
-            // Set playback rate for slow play
-            audioRef.current.playbackRate = 0.5;
+            audioRef.current.playbackRate = 0.5; // Half speed
             
             // Play the audio
             await audioRef.current.play();
-            console.log('Playing teacher audio (slow)');
+            console.log('Playing teacher audio (slow speed)');
             
         } catch (error) {
             console.error('Error playing audio:', error);
             setIsPlaying(false);
+            setIsSlowPlaying(false);
         }
     }
 
@@ -207,7 +227,7 @@ function Study() {
                         onClick={handlePlay}
                     />
                     <Snail 
-                        className={`size-7 ${isPlaying ? 'text-green-500' : 'text-primary'}`} 
+                        className={`size-7 ${isSlowPlaying ? 'text-green-500' : 'text-primary'}`} 
                         onClick={handleSlowPlay}
                     />                    
                     <Bookmark className="text-primary size-7" onClick={handleBookmark}/>                    
