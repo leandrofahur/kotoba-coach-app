@@ -7,7 +7,7 @@ export const useAudioStream = (lessonId: string) => {
 
     const startStreaming = useCallback(async () => {
         try {
-            console.log('Starting audio stream...');
+            // console.log('Starting audio stream...');
             feedbackReceivedRef.current = false;
             
             // Get microphone access
@@ -20,25 +20,25 @@ export const useAudioStream = (lessonId: string) => {
                 }
             });
 
-            console.log('Microphone access granted');
+            // console.log('Microphone access granted');
 
             // Create WebSocket connection
             wsRef.current = new WebSocket(`ws://localhost:8000/api/v1/audio-stream/ws/${lessonId}`);
 
             wsRef.current.onopen = () => {
-                console.log('WebSocket connected');
+                // console.log('WebSocket connected');
             };
 
             wsRef.current.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                console.log('WebSocket received:', data);
+                // console.log('WebSocket received:', data);
                 
                 // Handle different types of feedback
                 if (data.status === 'feedback') {
-                    console.log(`Score: ${data.score}%`);
-                    console.log(`Transcription: ${data.transcription}`);
-                    console.log(`Expected: ${data.expected_text}`);
-                    console.log(`Label: ${data.label}`);
+                    // console.log(`Score: ${data.score}%`);
+                    // console.log(`Transcription: ${data.transcription}`);
+                    // console.log(`Expected: ${data.expected_text}`);
+                    // console.log(`Label: ${data.label}`);
                     
                     feedbackReceivedRef.current = true;
                     
@@ -50,12 +50,12 @@ export const useAudioStream = (lessonId: string) => {
                     // Now close the WebSocket after receiving feedback
                     setTimeout(() => {
                         if (wsRef.current?.readyState === WebSocket.OPEN) {
-                            console.log('Feedback received, closing WebSocket');
+                            // console.log('Feedback received, closing WebSocket');
                             wsRef.current.close();
                         }
                     }, 1000);
                 } else if (data.status === 'chunk_received') {
-                    console.log(`Chunk received: ${data.chunk_size} bytes, total: ${data.total_chunks}`);
+                    // console.log(`Chunk received: ${data.chunk_size} bytes, total: ${data.total_chunks}`);
                 } else if (data.status === 'error') {
                     console.error('Processing error:', data.message);
                 }
@@ -66,7 +66,7 @@ export const useAudioStream = (lessonId: string) => {
             };
 
             wsRef.current.onclose = (event) => {
-                console.log('WebSocket disconnected:', event.code, event.reason);
+                // console.log('WebSocket disconnected:', event.code, event.reason);
             };
 
             // Check available MIME types
@@ -78,7 +78,7 @@ export const useAudioStream = (lessonId: string) => {
             ];
             
             const supportedType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
-            console.log('Supported MIME type:', supportedType);
+            // console.log('Supported MIME type:', supportedType);
 
             if (!supportedType) {
                 throw new Error('No supported audio format found');
@@ -89,26 +89,26 @@ export const useAudioStream = (lessonId: string) => {
                 mimeType: supportedType
             });
 
-            console.log('MediaRecorder created with type:', supportedType);
+            // console.log('MediaRecorder created with type:', supportedType);
 
             // Handle audio data
             mediaRecorderRef.current.ondataavailable = (event) => {
-                console.log('Audio data available:', event.data.size, 'bytes');
+                // console.log('Audio data available:', event.data.size, 'bytes');
                 
                 if (event.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
                     // Convert to ArrayBuffer and send
                     event.data.arrayBuffer().then(buffer => {
-                        console.log('Sending audio chunk:', buffer.byteLength, 'bytes');
+                        // console.log('Sending audio chunk:', buffer.byteLength, 'bytes');
                         wsRef.current?.send(buffer);
                     });
                 } else {
-                    console.log('Cannot send audio: WebSocket not ready or no data');
+                    // console.log('Cannot send audio: WebSocket not ready or no data');
                 }
             };
 
             // Start recording with smaller chunks for real-time processing
             mediaRecorderRef.current.start(100); // Send chunks every 100ms
-            console.log('Started recording');
+            // console.log('Started recording');
 
         } catch (error) {
             console.error('Error starting audio stream:', error);
@@ -117,18 +117,18 @@ export const useAudioStream = (lessonId: string) => {
     }, [lessonId]);
 
     const stopStreaming = useCallback(() => {
-        console.log('Stopping audio recording...');
+        // console.log('Stopping audio recording...');
         
         // Stop the MediaRecorder (stops sending audio data)
         if (mediaRecorderRef.current) {
             mediaRecorderRef.current.stop();
-            console.log('MediaRecorder stopped - no more audio data will be sent');
+            // console.log('MediaRecorder stopped - no more audio data will be sent');
         }
         
         // Send stop signal to backend (but keep WebSocket open)
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({ action: 'stop' }));
-            console.log('Sent stop signal to backend - waiting for feedback');
+            // console.log('Sent stop signal to backend - waiting for feedback');
         }
         
         // Don't close the WebSocket here - let it stay open for feedback

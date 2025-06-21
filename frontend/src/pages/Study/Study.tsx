@@ -37,7 +37,7 @@ function Study() {
     useEffect(() => {
         const handleFeedback = (event: CustomEvent) => {
             const data = event.detail;
-            console.log('Received feedback in Study component:', data);
+            // console.log('Received feedback in Study component:', data);
             
             if (data.status === 'feedback') {
                 setPronunciationScore(data.score);
@@ -103,7 +103,7 @@ function Study() {
             
             // Play the audio
             await audioRef.current.play();
-            console.log('Playing teacher audio (normal speed)');
+            // console.log('Playing teacher audio (normal speed)');
             
         } catch (error) {
             console.error('Error playing audio:', error);
@@ -147,7 +147,7 @@ function Study() {
             
             // Play the audio
             await audioRef.current.play();
-            console.log('Playing teacher audio (slow speed)');
+            // console.log('Playing teacher audio (slow speed)');
             
         } catch (error) {
             console.error('Error playing audio:', error);
@@ -157,22 +157,22 @@ function Study() {
     }
 
     const handleBookmark = () => {
-        console.log("bookmark", lesson.id);
+        // console.log("bookmark", lesson.id);
     }
 
     const handleSpeak = async () => {
-        console.log('Speak button clicked, current state:', { isRecording });
+        // console.log('Speak button clicked, current state:', { isRecording });
         
         if (!isRecording) {
             // Start recording
-            console.log('Starting recording...');
+            // console.log('Starting recording...');
             setIsRecording(true);
             setFeedback("Listening...");
             setPronunciationScore(null);
             setTranscription("");
             try {
                 await startStreaming();
-                console.log('Recording started successfully');
+                // console.log('Recording started successfully');
             } catch (error) {
                 console.error('Failed to start recording:', error);
                 setIsRecording(false);
@@ -180,12 +180,12 @@ function Study() {
             }
         } else {
             // Stop recording
-            console.log('Stopping recording...');
+            // console.log('Stopping recording...');
             setIsRecording(false);
             setFeedback("Processing...");
             setIsProcessing(true);
             stopStreaming();
-            console.log('Recording stopped');
+            // console.log('Recording stopped');
         }
     }
 
