@@ -43,8 +43,10 @@
     --color-gray-dark: #80807D;
     --color-gray: #B0B0AD;
     --color-gray-light: #DCDAD5;
+    --color-gray-xlight: #E5E5E5;
     --color-beige-light: #FAF8F1;
     --color-black-dark: #3C3C3C;
+
 
     --font-sans: "Inter", sans-serif;
 }

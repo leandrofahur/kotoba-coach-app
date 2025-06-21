@@ -1,5 +1,3 @@
-import { useParams } from "react-router-dom"
-
 import LessonBlockList from "@/components/LessonBlockList/LessonBlockList"
 import { LessonStatus } from "@/components/LessonBlock/LessonBlock.types"
 
