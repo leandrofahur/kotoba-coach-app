@@ -26,7 +26,7 @@ function Lessons() {
 
 
   return (          
-    <div className="w-full flex flex-col space-y-3 items-center justify-center h-screen bg-white p-4 gap-4">
+    <div className="w-full flex flex-col space-y-3 items-center justify-center h-screen bg-beige-light p-4 gap-4">
       {isLoading ? (
         <div className="flex flex-col space-y-3 items-center justify-center h-screen p-4 gap-4">
           <Skeleton className="h-[80px] w-[250px] rounded-xl" />
