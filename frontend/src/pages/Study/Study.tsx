@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 
-import { X } from "lucide-react";
+import { X, Snail, BookCheck, Book, Volume1, Bookmark, Mic } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 function Study() {
     const navigate = useNavigate();
@@ -29,17 +30,26 @@ function Study() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
                         <span className="bg-black-dark h-4 w-4 rounded-full mr-2" />
-                        <p className="text-[16px] leading-6">Score</p>
+                        <p className="text-[12px] leading-6">Score</p>
                     </div>
                     <div className="flex items-center">                        
                         <p className="text-[16px] leading-6">98%</p>
                     </div>
                 </div>                                    
-                <p className="text-sm font-bold">Word</p>
-                <p className="text-sm font-bold">Icons</p>
-                <p className="text-sm font-bold">Button</p>
-            </div>                        
-        </div>       
+                <p className="text-[32px] font-bold mt-4">あの</p>
+                <p className="text-[12px] font-bold mt-2">Translation</p>
+                <div className="flex items-center gap-4 mt-4">
+                    <Volume1 className="w-6 h-6" />
+                    <Snail className="w-6 h-6" />
+                    <Bookmark className="w-6 h-6" />
+                </div>
+                <div className="flex items-center justify-center h-full">
+                    <Button className="w-[60px] h-[60px] rounded-full">
+                        <Mic className="size-6" />
+                    </Button>
+                </div>
+            </div>
+        </div>
     )
 }
 
