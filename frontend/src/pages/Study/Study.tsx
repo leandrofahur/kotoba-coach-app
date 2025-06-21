@@ -12,6 +12,7 @@ function Study() {
     const location = useLocation();
     const { id } = useParams<{ id: string }>();
     const lesson = location.state?.lesson as LessonBlockProps | undefined;
+    const scores = location.state?.scores || [];
     const [isRecording, setIsRecording] = useState(false);
     const [pronunciationScore, setPronunciationScore] = useState<number | null>(null);
     const [transcription, setTranscription] = useState<string>("");
@@ -206,16 +207,19 @@ function Study() {
 
     const handleContinue = () => {
         if (!lesson || !allLessons) return;
+        
+        const newScores = pronunciationScore ? [...scores, pronunciationScore] : scores;
         const currentId = parseInt(lesson.id);
         const nextLesson = allLessons.find(l => parseInt(l.id) === currentId + 1);
 
         if (nextLesson) {
             navigate(`/lessons/${nextLesson.id}`, {
-                state: { lesson: nextLesson, totalLessons: allLessons.length },
+                state: { ...location.state, lesson: nextLesson, scores: newScores },
                 replace: true,
             });
         } else {
-            navigate("/lessons");
+            const finalScore = newScores.length > 0 ? newScores.reduce((a, b) => a + b, 0) / newScores.length : 0;
+            navigate("/results", { state: { score: finalScore } });
         }
     };
 
