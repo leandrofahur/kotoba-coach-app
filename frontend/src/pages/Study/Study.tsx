@@ -64,6 +64,21 @@ function Study() {
         return <Navigate to="/lessons" />;
     }
 
+    // Reset state when lesson changes
+    useEffect(() => {
+        setPronunciationScore(null);
+        setTranscription("");
+        setFeedback("");
+        setLessonCompleted(false);
+        setIsProcessing(false);
+        setIsPlaying(false);
+        setIsSlowPlaying(false);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+    }, [lesson.id]);
+
     const handleBack = () => {
         navigate("/lessons");
     }
