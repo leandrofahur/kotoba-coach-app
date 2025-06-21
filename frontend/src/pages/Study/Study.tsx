@@ -1,14 +1,39 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 
-import { X, Snail, BookCheck, Book, Volume1, Bookmark, Mic } from "lucide-react";
+import { X, Snail, Volume1, Bookmark, Mic } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import type { LessonBlockProps } from "@/components/LessonBlock/LessonBlock.types";
 
 function Study() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { id } = useParams<{ id: string }>();
+    const lesson = location.state?.lesson as LessonBlockProps | undefined;
+
+    // Redirect if no lesson data or ID mismatch
+    if (!lesson || lesson.id !== id) {
+        return <Navigate to="/lessons" />;
+    }
 
     const handleBack = () => {
         navigate("/lessons");
+    }
+
+    const handlePlay = () => {
+        console.log("play", lesson.audio_url);
+    }
+
+    const handleSlowPlay = () => {
+        console.log("slow play", lesson.audio_url);
+    }
+
+    const handleBookmark = () => {
+        console.log("bookmark", lesson.id);
+    }
+
+    const handleSpeak = () => {
+        console.log("speak", lesson.text);
     }
 
     return (
@@ -35,16 +60,19 @@ function Study() {
                     <div className="flex items-center">                        
                         <p className="text-[16px] leading-6">98%</p>
                     </div>
-                </div>                                    
-                <p className="text-[32px] font-bold mt-4">あの</p>
-                <p className="text-[12px] font-bold mt-2">Translation</p>
-                <div className="flex items-center gap-4 mt-4">
-                    <Volume1 className="w-6 h-6" />
-                    <Snail className="w-6 h-6" />
-                    <Bookmark className="w-6 h-6" />
+                </div>    
+
+                <p className="text-[32px] font-bold mt-4">{lesson.text}</p>
+                <p className="text-[12px] font-bold mt-2">{lesson.translation}</p>
+                
+                <div className="flex items-center gap-4 mt-4">                    
+                    <Volume1 className="text-primary size-7" onClick={handlePlay}/>
+                    <Snail className="text-primary size-7" onClick={handleSlowPlay}/>                    
+                    <Bookmark className="text-primary size-7" onClick={handleBookmark}/>                    
                 </div>
+                
                 <div className="flex items-center justify-center h-full">
-                    <Button className="w-[60px] h-[60px] rounded-full">
+                    <Button className="w-[60px] h-[60px] rounded-full" onClick={handleSpeak}>
                         <Mic className="size-6" />
                     </Button>
                 </div>
@@ -54,17 +82,3 @@ function Study() {
 }
 
 export default Study;
-
-
-
-// <div className="flex flex-col h-screen w-full bg-beige-light gap-4">
-//     <div className="flex justify-between w-full p-4 h-1/2">
-//         <X className="w-6 h-6" onClick={handleBack} />
-//         <Progress value={75} className="max-w-[300px]" />                
-//     </div>                        
-//     {/* <div className="flex flex-col bg-white h-1/2 p-4">
-//         <h1 className="text-2xl font-bold">Study</h1>                                    
-//         <h1 className="text-2xl font-bold">Study</h1>
-//         <h1 className="text-2xl font-bold">Study</h1>
-//     </div> */}
-// </div>

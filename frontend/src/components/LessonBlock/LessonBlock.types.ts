@@ -5,6 +5,10 @@ export enum LessonStatus {
 }
 
 export interface LessonBlockProps {
-  lessonNumber: number;  
-  lessonStatus: LessonStatus;
+  id: string;
+  text: string;
+  romaji: string;
+  translation: string;
+  audio_url: string;
+  status: LessonStatus;
 }

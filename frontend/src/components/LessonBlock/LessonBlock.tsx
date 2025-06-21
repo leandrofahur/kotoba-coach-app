@@ -1,15 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { type LessonBlockProps, LessonStatus } from "@/components/LessonBlock/LessonBlock.types";
-
+import { LessonStatus, type LessonBlockProps } from "./LessonBlock.types";
 import LessonBadge from "@/components/LessonBadge/LessonBadge";
 
-export default function LessonBlock({ lessonNumber, lessonStatus = LessonStatus.NOT_STARTED }: LessonBlockProps) {
+export default function LessonBlock({ id, text, romaji, translation, audio_url, status = LessonStatus.NOT_STARTED }: LessonBlockProps) {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        if(lessonStatus !== LessonStatus.NOT_STARTED) {
-            navigate(`/lessons/${lessonNumber}`);
+        if(status !== LessonStatus.NOT_STARTED) {
+            navigate(`/lessons/${id}`, { 
+                state: { lesson: { id, text, romaji, translation, audio_url, status } }
+            });
         }
     };
 
@@ -35,14 +36,14 @@ export default function LessonBlock({ lessonNumber, lessonStatus = LessonStatus.
 
   return (
     <Card 
-      className={`w-full max-w-md shadow-[#C7C7C7] ${mapLessonStatusToColor(lessonStatus)} cursor-pointer hover:opacity-80 transition-opacity`} 
+      className={`w-full max-w-md shadow-[#C7C7C7] ${mapLessonStatusToColor(status)} cursor-pointer hover:opacity-80 transition-opacity`} 
       onClick={handleClick}
     >
       <CardContent>
         <div className="flex justify-between">
-            <p className={`text-center ${mapLessonStatusToTextColor(lessonStatus)}`}>Lesson {lessonNumber}</p>
-            {lessonStatus !== LessonStatus.NOT_STARTED && <LessonBadge lessonStatus={lessonStatus} />}
-        </div>
+            <p className={`text-center ${mapLessonStatusToTextColor(status)}`}>Lesson {id}</p>
+            {status !== LessonStatus.NOT_STARTED && <LessonBadge lessonStatus={status} />}
+        </div>        
       </CardContent>
     </Card>
   );
