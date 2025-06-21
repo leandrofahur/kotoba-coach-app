@@ -299,7 +299,7 @@ function Study() {
                     {pronunciationScore !== null ? (
                         pronunciationScore >= 60 ? (
                             <div className="flex w-full items-center justify-center gap-4">
-                                <Button variant="outline" className="p-4 h-auto aspect-square" onClick={handleRetry}>
+                                <Button variant="default" className="p-4 h-auto aspect-square" onClick={handleRetry}>
                                     <RefreshCw className="size-6" />
                                 </Button>
                                 <Button className="flex-grow h-auto py-4" onClick={handleContinue}>
@@ -312,7 +312,7 @@ function Study() {
                                     <StepForward className="size-5 mr-2" />
                                     Skip
                                 </Button>
-                                <Button className="flex-grow h-auto py-4" onClick={handleRetry}>
+                                <Button variant="default" className="flex-grow h-auto py-4" onClick={handleRetry}>
                                     <RefreshCw className="size-5 mr-2" />
                                     Retry
                                 </Button>
