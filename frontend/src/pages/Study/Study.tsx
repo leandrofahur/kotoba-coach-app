@@ -1,10 +1,11 @@
 import { useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
-import { X, Snail, Volume1, Bookmark, Mic } from "lucide-react";
+import { X, Snail, Volume1, Bookmark, Mic, RefreshCw, Play, StepForward } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAudioStream } from "@/hooks/useAudioStream";
 import { useState, useEffect, useRef } from "react";
 import type { LessonBlockProps } from "@/components/LessonBlock/LessonBlock.types";
+import { useQuery } from "@tanstack/react-query";
 
 function Study() {
     const navigate = useNavigate();
@@ -19,8 +20,18 @@ function Study() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isSlowPlaying, setIsSlowPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [lessonCompleted, setLessonCompleted] = useState(false);
 
     const { startStreaming, stopStreaming } = useAudioStream(id!);
+
+    // Fetch all lessons to get total count for progress and navigation
+    const { data: allLessons } = useQuery<LessonBlockProps[]>({
+        queryKey: ["lessons"],
+        queryFn: async () => {
+            const response = await fetch("http://localhost:8000/api/v1/phrases");
+            return response.json();
+        },
+    });
 
     // Listen for pronunciation feedback
     useEffect(() => {
@@ -33,6 +44,9 @@ function Study() {
                 setTranscription(data.transcription);
                 setFeedback(data.label);
                 setIsProcessing(false);
+                if (data.score >= 70) {
+                    setLessonCompleted(true);
+                }
             } else if (data.status === 'chunk_received') {
                 setIsProcessing(true);
             }
@@ -175,12 +189,60 @@ function Study() {
         }
     }
 
+    const handleContinue = () => {
+        if (!lesson || !allLessons) return;
+        const currentId = parseInt(lesson.id);
+        const nextLesson = allLessons.find(l => parseInt(l.id) === currentId + 1);
+
+        if (nextLesson) {
+            navigate(`/lessons/${nextLesson.id}`, {
+                state: { lesson: nextLesson, totalLessons: allLessons.length },
+                replace: true,
+            });
+        } else {
+            navigate("/lessons");
+        }
+    };
+
+    const handleRetry = () => {
+        setPronunciationScore(null);
+        setTranscription("");
+        setFeedback("Click the mic to try again");
+        setLessonCompleted(false);
+    };
+
+    const playAudio = async (rate: number) => {
+        if (!lesson || isPlaying || isSlowPlaying) return;
+        if (rate === 1.0) setIsPlaying(true);
+        else setIsSlowPlaying(true);
+
+        const audio = audioRef.current ?? new Audio();
+        audioRef.current = audio;
+        audio.src = `http://localhost:8000/api/v1/audio-stream/audio/${lesson.id}`;
+        audio.playbackRate = rate;
+        audio.onended = () => {
+            setIsPlaying(false);
+            setIsSlowPlaying(false);
+        };
+        await audio.play();
+    };
+
+    const calculateProgress = () => {
+        if (!lesson || !allLessons) return 0;
+        const total = allLessons.length;
+        const current = parseInt(lesson.id);
+        const progressPerLesson = 100 / total;
+        const baseProgress = (current - 1) * progressPerLesson;
+        const completionProgress = lessonCompleted ? progressPerLesson : 0;
+        return Math.min(100, Math.round(baseProgress + completionProgress));
+    };
+
     return (
         <div className="flex flex-col h-screen w-full bg-beige-light">
             <div className="flex flex-col p-4 h-1/2">
                 <div className="flex items-center">
                     <X className="w-8 h-8" onClick={handleBack} />
-                    <Progress value={75} className="w-full ml-4"/>
+                    <Progress value={calculateProgress()} className="w-full ml-4"/>
                 </div>
                 <div className="flex flex-col w-full mt-4 h-full">
                     <p className="text-start text-[12px] font-[600] text-black-dark">Repeat After Me</p>
@@ -224,24 +286,51 @@ function Study() {
                 <div className="flex items-center gap-4 mt-4">                    
                     <Volume1 
                         className={`size-7 ${isPlaying ? 'text-green-500' : 'text-primary'}`} 
-                        onClick={handlePlay}
+                        onClick={() => playAudio(1.0)}
                     />
                     <Snail 
                         className={`size-7 ${isSlowPlaying ? 'text-green-500' : 'text-primary'}`} 
-                        onClick={handleSlowPlay}
+                        onClick={() => playAudio(0.5)}
                     />                    
                     <Bookmark className="text-primary size-7" onClick={handleBookmark}/>                    
                 </div>
                 
-                <div className="flex flex-col items-center justify-center h-full gap-2">
-                    <Button 
-                        className={`w-[60px] h-[60px] rounded-full ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`} 
-                        onClick={handleSpeak}
-                    >
-                        <Mic className="size-6" />
-                    </Button>
-                    {feedback && !transcription && (
-                        <p className="text-sm text-gray-600">{feedback}</p>
+                <div className="flex items-center justify-center h-full mt-4">
+                    {pronunciationScore !== null ? (
+                        pronunciationScore >= 60 ? (
+                            <div className="flex w-full items-center justify-center gap-4">
+                                <Button variant="outline" className="p-4 h-auto aspect-square" onClick={handleRetry}>
+                                    <RefreshCw className="size-6" />
+                                </Button>
+                                <Button className="flex-grow h-auto py-4" onClick={handleContinue}>
+                                    Continue
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="flex w-full items-center justify-center gap-4">
+                                <Button variant="default" className="flex-grow h-auto py-4" onClick={handleContinue}>
+                                    <StepForward className="size-5 mr-2" />
+                                    Skip
+                                </Button>
+                                <Button className="flex-grow h-auto py-4" onClick={handleRetry}>
+                                    <RefreshCw className="size-5 mr-2" />
+                                    Retry
+                                </Button>
+                            </div>
+                        )
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full gap-2">
+                            <Button
+                                className={`w-[60px] h-[60px] rounded-full ${isRecording ? "bg-red-500 hover:bg-red-600" : ""}`}
+                                onClick={handleSpeak}
+                                disabled={isProcessing}
+                            >
+                                <Mic className="size-6" />
+                            </Button>
+                            <p className="text-sm text-gray-600 h-4">
+                                {isProcessing ? "Processing..." : feedback}
+                            </p>
+                        </div>
                     )}
                 </div>
             </div>
