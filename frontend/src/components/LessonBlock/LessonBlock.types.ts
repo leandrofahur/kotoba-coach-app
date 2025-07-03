@@ -1,8 +1,10 @@
-export enum LessonStatus {
-    COMPLETED = "completed",
-    IN_PROGRESS = "in-progress",
-    NOT_STARTED = "not-started"
-}
+export const LessonStatus = {
+    COMPLETED: "completed",
+    IN_PROGRESS: "in-progress",
+    NOT_STARTED: "not-started"
+} as const;
+
+export type LessonStatus = typeof LessonStatus[keyof typeof LessonStatus];
 
 export interface LessonBlockProps {
   id: string;

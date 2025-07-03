@@ -1,11 +1,29 @@
 import { useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
-import { X, Snail, Volume1, Bookmark, Mic, RefreshCw, Play, StepForward } from "lucide-react";
+import { X, Snail, Volume1, Bookmark, Mic, RefreshCw, StepForward } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAudioStream } from "@/hooks/useAudioStream";
 import { useState, useEffect, useRef } from "react";
 import type { LessonBlockProps } from "@/components/LessonBlock/LessonBlock.types";
 import { useQuery } from "@tanstack/react-query";
+
+// Add a type for the feedback object
+interface MoraeAnalysis {
+  expected_morae: string[];
+  actual_morae: string[];
+  errors: { error_positions: number[]; [key: string]: unknown };
+  feedback: string;
+}
+interface PitchAnalysis {
+  expected_accent: { name: string; pattern: string[] };
+  feedback: string;
+}
+interface PronunciationFeedback {
+  morae_analysis?: MoraeAnalysis;
+  pitch_analysis?: PitchAnalysis;
+  detailed_feedback?: string;
+  [key: string]: unknown;
+}
 
 function Study() {
     const navigate = useNavigate();
@@ -22,6 +40,7 @@ function Study() {
     const [isSlowPlaying, setIsSlowPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [lessonCompleted, setLessonCompleted] = useState(false);
+    const [awesomeFeedback, setAwesomeFeedback] = useState<PronunciationFeedback | null>(null);
 
     const { startStreaming, stopStreaming } = useAudioStream(id!);
 
@@ -38,13 +57,12 @@ function Study() {
     useEffect(() => {
         const handleFeedback = (event: CustomEvent) => {
             const data = event.detail;
-            // console.log('Received feedback in Study component:', data);
-            
             if (data.status === 'feedback') {
                 setPronunciationScore(data.score);
                 setTranscription(data.transcription);
                 setFeedback(data.label);
                 setIsProcessing(false);
+                setAwesomeFeedback(data); // Store the full feedback object
                 if (data.score >= 70) {
                     setLessonCompleted(true);
                 }
@@ -52,18 +70,11 @@ function Study() {
                 setIsProcessing(true);
             }
         };
-
         window.addEventListener('pronunciationFeedback', handleFeedback as EventListener);
-        
         return () => {
             window.removeEventListener('pronunciationFeedback', handleFeedback as EventListener);
         };
     }, []);
-
-    // Redirect if no lesson data or ID mismatch
-    if (!lesson || lesson.id !== id) {
-        return <Navigate to="/lessons" />;
-    }
 
     // Reset state when lesson changes
     useEffect(() => {
@@ -74,102 +85,20 @@ function Study() {
         setIsProcessing(false);
         setIsPlaying(false);
         setIsSlowPlaying(false);
+        setAwesomeFeedback(null);
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
-    }, [lesson.id]);
+    }, [lesson?.id]);
+
+    // Redirect if no lesson data or ID mismatch
+    if (!lesson || lesson.id !== id) {
+        return <Navigate to="/lessons" />;
+    }
 
     const handleBack = () => {
         navigate("/lessons");
-    }
-
-    const handlePlay = async () => {
-        if (!lesson) return;
-        
-        try {
-            // Stop any current playback
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            }
-            
-            setIsPlaying(true);
-            setIsSlowPlaying(false);
-            
-            // Create audio element if it doesn't exist
-            if (!audioRef.current) {
-                audioRef.current = new Audio();
-                
-                audioRef.current.onended = () => {
-                    setIsPlaying(false);
-                    setIsSlowPlaying(false);
-                };
-                
-                audioRef.current.onerror = () => {
-                    console.error('Audio playback error');
-                    setIsPlaying(false);
-                    setIsSlowPlaying(false);
-                };
-            }
-            
-            // Set the audio source and normal speed
-            audioRef.current.src = `http://localhost:8000/api/v1/audio-stream/audio/${lesson.id}`;
-            audioRef.current.playbackRate = 1.0;
-            
-            // Play the audio
-            await audioRef.current.play();
-            // console.log('Playing teacher audio (normal speed)');
-            
-        } catch (error) {
-            console.error('Error playing audio:', error);
-            setIsPlaying(false);
-            setIsSlowPlaying(false);
-        }
-    }
-
-    const handleSlowPlay = async () => {
-        if (!lesson) return;
-        
-        try {
-            // Stop any current playback
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            }
-            
-            setIsPlaying(false);
-            setIsSlowPlaying(true);
-            
-            // Create audio element if it doesn't exist
-            if (!audioRef.current) {
-                audioRef.current = new Audio();
-                
-                audioRef.current.onended = () => {
-                    setIsPlaying(false);
-                    setIsSlowPlaying(false);
-                };
-                
-                audioRef.current.onerror = () => {
-                    console.error('Audio playback error');
-                    setIsPlaying(false);
-                    setIsSlowPlaying(false);
-                };
-            }
-            
-            // Set the audio source and slow speed
-            audioRef.current.src = `http://localhost:8000/api/v1/audio-stream/audio/${lesson.id}`;
-            audioRef.current.playbackRate = 0.5; // Half speed
-            
-            // Play the audio
-            await audioRef.current.play();
-            // console.log('Playing teacher audio (slow speed)');
-            
-        } catch (error) {
-            console.error('Error playing audio:', error);
-            setIsPlaying(false);
-            setIsSlowPlaying(false);
-        }
     }
 
     const handleBookmark = () => {
@@ -186,6 +115,7 @@ function Study() {
             setFeedback("Listening...");
             setPronunciationScore(null);
             setTranscription("");
+            setAwesomeFeedback(null);
             try {
                 await startStreaming();
                 // console.log('Recording started successfully');
@@ -218,7 +148,7 @@ function Study() {
                 replace: true,
             });
         } else {
-            const finalScore = newScores.length > 0 ? newScores.reduce((a, b) => a + b, 0) / newScores.length : 0;
+            const finalScore = newScores.length > 0 ? newScores.reduce((a: number, b: number) => a + b, 0) / newScores.length : 0;
             navigate("/results", { state: { score: finalScore } });
         }
     };
@@ -228,6 +158,7 @@ function Study() {
         setTranscription("");
         setFeedback("Click the mic to try again");
         setLessonCompleted(false);
+        setAwesomeFeedback(null);
     };
 
     const playAudio = async (rate: number) => {
@@ -293,6 +224,49 @@ function Study() {
                         <p className="text-sm text-gray-600">You said: {transcription}</p>
                         <p className="text-sm font-medium text-primary">{feedback}</p>
                     </div>
+                )}
+
+                {/* --- AWESOME FEEDBACK DEMO --- */}
+                {transcription && awesomeFeedback && (
+                  <div className="mt-4 p-3 rounded-lg border border-primary bg-primary/5">
+                    {/* Morae Feedback */}
+                    <div>
+                      <p className="font-bold text-primary mb-1">Morae Analysis</p>
+                      <div className="flex gap-1 mb-1">
+                        {/* Expected morae */}
+                        {awesomeFeedback.morae_analysis?.expected_morae?.map((mora: string, idx: number) => {
+                          const errorPos = awesomeFeedback.morae_analysis?.errors?.error_positions || [];
+                          const isError = errorPos.includes(idx);
+                          return (
+                            <span key={idx} className={`px-2 py-1 rounded text-lg font-mono ${isError ? 'bg-red-200 text-red-800' : 'bg-green-100 text-green-800'}`}>{mora}</span>
+                          );
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-700 mb-1">{awesomeFeedback.morae_analysis?.feedback}</div>
+                    </div>
+                    {/* Pitch Feedback */}
+                    <div className="mt-2">
+                      <p className="font-bold text-primary mb-1">Pitch Accent</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          Expected: {awesomeFeedback.pitch_analysis?.expected_accent?.name}
+                        </span>
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                          Pattern: {awesomeFeedback.pitch_analysis?.expected_accent?.pattern?.join(' ')}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-700 mt-1">{awesomeFeedback.pitch_analysis?.feedback}</div>
+                    </div>
+                    {/* Suggestions */}
+                    <div className="mt-2">
+                      <p className="font-bold text-primary mb-1">Suggestions</p>
+                      <ul className="list-disc ml-5 text-xs text-gray-800">
+                        {awesomeFeedback.detailed_feedback && (
+                          <li>{awesomeFeedback.detailed_feedback}</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
                 )}
                 
                 {/* Show processing status */}

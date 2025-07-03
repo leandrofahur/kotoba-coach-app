@@ -65,7 +65,7 @@ export const useAudioStream = (lessonId: string) => {
                 console.error('WebSocket error:', error);
             };
 
-            wsRef.current.onclose = (event) => {
+            wsRef.current.onclose = () => {
                 // console.log('WebSocket disconnected:', event.code, event.reason);
             };
 

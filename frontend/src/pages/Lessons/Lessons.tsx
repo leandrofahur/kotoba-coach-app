@@ -1,16 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-
-import LessonBlockList from "@/components/LessonBlockList/LessonBlockList"
-import { LessonStatus } from "@/components/LessonBlock/LessonBlock.types"
-
-const lessonBlocks = [
-  { lessonNumber: 1, lessonStatus: LessonStatus.COMPLETED },
-  { lessonNumber: 2, lessonStatus: LessonStatus.IN_PROGRESS },
-  { lessonNumber: 3, lessonStatus: LessonStatus.NOT_STARTED },
-  { lessonNumber: 4, lessonStatus: LessonStatus.NOT_STARTED },
-  { lessonNumber: 5, lessonStatus: LessonStatus.NOT_STARTED },
-]
+import LessonBlockList from "@/components/LessonBlockList/LessonBlockList";
 
 function Lessons() {  
   const getLessons = async () => {
