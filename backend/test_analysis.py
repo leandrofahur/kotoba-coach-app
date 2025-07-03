@@ -101,22 +101,37 @@ def test_comprehensive_analysis():
     """Test comprehensive pronunciation analysis."""
     print("\n=== COMPREHENSIVE ANALYSIS TESTS ===\n")
     
-    # Simulate analysis with mock data
+    # Simulate analysis with more realistic mock data
     test_cases = [
         {
             "expected": "こんにちは",
             "transcription": "こんにちは",
-            "description": "Perfect pronunciation"
+            "description": "Perfect pronunciation (heiban)",
+            "mock_pitch": [120.0, 125.0, 130.0, 135.0, 140.0, 145.0, 150.0, 155.0, 160.0] * 5  # Slightly rising pitch
+        },
+        {
+            "expected": "はし",
+            "transcription": "はし",
+            "description": "Atamadaka accent (bridge)",
+            "mock_pitch": [180.0, 160.0, 140.0, 120.0, 100.0, 80.0] * 8  # High-low pattern
+        },
+        {
+            "expected": "あたま",
+            "transcription": "あたま",
+            "description": "Nakadaka accent (head)",
+            "mock_pitch": [120.0, 130.0, 180.0, 160.0, 140.0, 120.0, 100.0, 80.0] * 6  # Low-high-low pattern
         },
         {
             "expected": "こんにちは",
             "transcription": "こんちは",
-            "description": "Missing mora"
+            "description": "Missing mora",
+            "mock_pitch": [120.0, 125.0, 130.0, 135.0, 140.0, 145.0, 150.0] * 7  # Fewer morae
         },
         {
             "expected": "おはようございます",
             "transcription": "おはようございま",
-            "description": "Missing final mora"
+            "description": "Missing final mora",
+            "mock_pitch": [110.0, 115.0, 120.0, 125.0, 130.0, 135.0, 140.0, 145.0, 150.0, 155.0, 160.0, 165.0, 170.0] * 4  # More morae
         }
     ]
     
@@ -125,8 +140,8 @@ def test_comprehensive_analysis():
         print(f"Expected: {test_case['expected']}")
         print(f"Transcription: {test_case['transcription']}")
         
-        # Mock pitch values (in real usage, these would come from audio analysis)
-        mock_pitch_values = [120.0, 125.0, 130.0, 135.0, 140.0] * 10  # 50 values
+        # Use more realistic pitch values
+        mock_pitch_values = test_case["mock_pitch"]
         
         try:
             analysis = analyze_comprehensive_pronunciation(
@@ -140,6 +155,9 @@ def test_comprehensive_analysis():
             print(f"Similarity score: {analysis['similarity_score']}%")
             print(f"Morae score: {analysis['morae_analysis']['score']:.1f}%")
             print(f"Pitch score: {analysis['pitch_analysis']['score']:.1f}%")
+            print(f"Expected pitch pattern: {analysis['pitch_analysis']['expected_accent']['pattern']}")
+            print(f"Pitch accent type: {analysis['pitch_analysis']['expected_accent']['name']}")
+            print(f"Pitch feedback: {analysis['pitch_analysis']['feedback']}")
             print(f"Detailed feedback: {analysis['detailed_feedback']}")
             print(f"Error summary: {analysis['error_summary']}")
             print("-" * 50)

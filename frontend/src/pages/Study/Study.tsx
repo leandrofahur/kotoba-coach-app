@@ -6,23 +6,62 @@ import { useAudioStream } from "@/hooks/useAudioStream";
 import { useState, useEffect, useRef } from "react";
 import type { LessonBlockProps } from "@/components/LessonBlock/LessonBlock.types";
 import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 
-// Add a type for the feedback object
+// Type definitions for the feedback response
+interface PitchAnalysis {
+  expected_accent: {
+    type: number;
+    name: string;
+    position: number;
+    total_morae: number;
+    pattern: string[];
+  };
+  actual_pitch_contour: number[];
+  errors: Array<{
+    position: number;
+    expected: string;
+    actual: string;
+    error_type: string;
+    pitch_value?: number;
+    threshold?: number;
+  }>;
+  score: number;
+  feedback: string;
+}
+
 interface MoraeAnalysis {
   expected_morae: string[];
   actual_morae: string[];
-  errors: { error_positions: number[]; [key: string]: unknown };
+  errors: {
+    error_positions: number[];
+    missing_morae: string[];
+    extra_morae: string[];
+    incorrect_morae: string[];
+    overall_accuracy: number;
+  };
+  score: number;
   feedback: string;
 }
-interface PitchAnalysis {
-  expected_accent: { name: string; pattern: string[] };
-  feedback: string;
-}
+
 interface PronunciationFeedback {
-  morae_analysis?: MoraeAnalysis;
-  pitch_analysis?: PitchAnalysis;
-  detailed_feedback?: string;
-  [key: string]: unknown;
+  overall_score: number;
+  overall_label: string;
+  similarity_score: number;
+  transcription: string;
+  expected_text: string;
+  morae_analysis: MoraeAnalysis;
+  pitch_analysis: PitchAnalysis;
+  detailed_feedback: string;
+  error_summary: {
+    total_errors: number;
+    morae_error_count: number;
+    pitch_error_count: number;
+    missing_morae_count: number;
+    extra_morae_count: number;
+    incorrect_morae_count: number;
+    has_errors: boolean;
+  };
 }
 
 function Study() {
@@ -244,27 +283,34 @@ function Study() {
                       </div>
                       <div className="text-xs text-gray-700 mb-1">{awesomeFeedback.morae_analysis?.feedback}</div>
                     </div>
-                    {/* Pitch Feedback */}
-                    <div className="mt-2">
-                      <p className="font-bold text-primary mb-1">Pitch Accent</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Expected: {awesomeFeedback.pitch_analysis?.expected_accent?.name}
-                        </span>
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                          Pattern: {awesomeFeedback.pitch_analysis?.expected_accent?.pattern?.join(' ')}
-                        </span>
+                                         {/* Pitch Analysis */}
+                     <div className="space-y-3">
+                       <div className="flex items-center gap-2">
+                         <div className={`w-3 h-3 rounded-full ${(awesomeFeedback.pitch_analysis?.score || 0) >= 80 ? 'bg-green-500' : (awesomeFeedback.pitch_analysis?.score || 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                         <h3 className="font-semibold text-lg">Pitch Accent</h3>
+                         <Badge variant={(awesomeFeedback.pitch_analysis?.score || 0) >= 80 ? 'default' : (awesomeFeedback.pitch_analysis?.score || 0) >= 60 ? 'secondary' : 'destructive'}>
+                           {Math.round(awesomeFeedback.pitch_analysis?.score || 0)}%
+                         </Badge>
+                       </div>
+                      
+                      {/* Pitch Accent Type */}
+                      <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          <strong>Accent Type:</strong> {awesomeFeedback.pitch_analysis?.expected_accent?.name}
+                        </p>
+                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                          <strong>Pattern:</strong> {awesomeFeedback.pitch_analysis?.expected_accent?.pattern?.join(' → ')}
+                        </p>
                       </div>
-                      <div className="text-xs text-gray-700 mt-1">{awesomeFeedback.pitch_analysis?.feedback}</div>
-                    </div>
-                    {/* Suggestions */}
-                    <div className="mt-2">
-                      <p className="font-bold text-primary mb-1">Suggestions</p>
-                      <ul className="list-disc ml-5 text-xs text-gray-800">
-                        {awesomeFeedback.detailed_feedback && (
-                          <li>{awesomeFeedback.detailed_feedback}</li>
-                        )}
-                      </ul>
+                      
+                      {/* Pitch Feedback */}
+                      {awesomeFeedback.pitch_analysis?.feedback && (
+                        <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
+                          <p className="text-sm text-amber-700 dark:text-amber-300">
+                            {awesomeFeedback.pitch_analysis?.feedback}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

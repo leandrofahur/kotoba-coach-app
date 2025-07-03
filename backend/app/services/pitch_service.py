@@ -65,6 +65,47 @@ import math
 import pyopenjtalk
 from typing import List, Dict, Tuple, Optional
 
+# Japanese pitch accent dictionary for common phrases
+PITCH_ACCENT_DICT = {
+    # Heiban (flat accent) phrases
+    "こんにちは": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "おはよう": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L"]},
+    "おはようございます": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L", "L", "L", "L"]},
+    "こんばんは": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "ありがとう": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L"]},
+    "さようなら": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "おやすみ": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L"]},
+    "いただきます": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "ごちそうさま": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "はじめまして": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "よろしく": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L"]},
+    "おねがいします": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L", "L"]},
+    "すみません": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L"]},
+    "わかりました": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L", "L", "L"]},
+    "がんばって": {"type": 0, "name": "heiban (flat)", "pattern": ["L", "L", "L"]},
+    
+    # Atamadaka (head-high) phrases
+    "はし": {"type": 1, "name": "atamadaka (head-high)", "pattern": ["H", "L"]},  # bridge
+    "はな": {"type": 1, "name": "atamadaka (head-high)", "pattern": ["H", "L"]},  # flower
+    "みず": {"type": 1, "name": "atamadaka (head-high)", "pattern": ["H", "L"]},  # water
+    "かみ": {"type": 1, "name": "atamadaka (head-high)", "pattern": ["H", "L"]},  # paper
+    "あめ": {"type": 1, "name": "atamadaka (head-high)", "pattern": ["H", "L"]},  # rain
+    
+    # Nakadaka (middle-high) phrases
+    "あたま": {"type": 2, "name": "nakadaka (middle-high)", "pattern": ["L", "H", "L"]},  # head
+    "おとこ": {"type": 2, "name": "nakadaka (middle-high)", "pattern": ["L", "H", "L"]},  # man
+    "おんな": {"type": 2, "name": "nakadaka (middle-high)", "pattern": ["L", "H", "L"]},  # woman
+    "かばん": {"type": 2, "name": "nakadaka (middle-high)", "pattern": ["L", "H", "L"]},  # bag
+    "でんわ": {"type": 2, "name": "nakadaka (middle-high)", "pattern": ["L", "H", "L"]},  # phone
+    
+    # Odaka (tail-high) phrases
+    "あめ": {"type": 3, "name": "odaka (tail-high)", "pattern": ["L", "H"]},  # candy (different from rain)
+    "ゆき": {"type": 3, "name": "odaka (tail-high)", "pattern": ["L", "H"]},  # snow
+    "ほし": {"type": 3, "name": "odaka (tail-high)", "pattern": ["L", "H"]},  # star
+    "つき": {"type": 3, "name": "odaka (tail-high)", "pattern": ["L", "H"]},  # moon
+    "かみ": {"type": 3, "name": "odaka (tail-high)", "pattern": ["L", "H"]},  # hair (different from paper)
+}
+
 def extract_pitch_librosa(audio_path: str, sr: int = 16000) -> List[float]:
     """
     Extract pitch (F0 in Hz) using librosa's pyin algorithm.
@@ -91,100 +132,55 @@ def extract_pitch_librosa(audio_path: str, sr: int = 16000) -> List[float]:
 
 def extract_pitch_accent_info(phrase: str) -> Dict:
     """
-    Extract pitch accent information using pyopenjtalk.
+    Extract pitch accent information using dictionary lookup and morae analysis.
     Returns detailed accent information for the phrase.
     """
     try:
-        labels = pyopenjtalk.run_frontend(phrase)
-        accent_info = {
+        # First, try to get accent info from our dictionary
+        if phrase in PITCH_ACCENT_DICT:
+            accent_data = PITCH_ACCENT_DICT[phrase]
+            morae = pyopenjtalk.g2p(phrase).split(" ")
+            return {
+                "accent_type": accent_data["type"],
+                "accent_position": 0,  # For heiban, position is 0
+                "total_morae": len(morae),
+                "pitch_pattern": accent_data["pattern"],
+                "accent_details": [{
+                    "accent_type": accent_data["type"],
+                    "accent_position": 0,
+                    "accent_total": len(morae)
+                }]
+            }
+        
+        # If not in dictionary, use morae count and default to heiban
+        morae = pyopenjtalk.g2p(phrase).split(" ")
+        total_morae = len(morae)
+        
+        # Generate a reasonable pattern based on morae count
+        pattern = ["L"] * total_morae  # Default to all low for heiban
+        
+        return {
+            "accent_type": 0,  # heiban (flat)
+            "accent_position": 0,
+            "total_morae": total_morae,
+            "pitch_pattern": pattern,
+            "accent_details": [{
+                "accent_type": 0,
+                "accent_position": 0,
+                "accent_total": total_morae
+            }]
+        }
+        
+    except Exception as e:
+        print(f"Error extracting pitch accent info: {e}")
+        # Fallback: return basic info
+        return {
             "accent_type": 0,
             "accent_position": 0,
             "total_morae": 0,
             "pitch_pattern": [],
             "accent_details": []
         }
-        
-        # Handle the case where labels might be a string or list
-        if isinstance(labels, str):
-            labels = [labels]
-        
-        for label in labels:
-            if isinstance(label, dict):
-                # If it's already a dict, extract accent info directly
-                accent_info["accent_type"] = label.get("accent_type", 0)
-                accent_info["accent_position"] = label.get("accent_position", 0)
-                accent_info["total_morae"] = label.get("total_morae", 0)
-            else:
-                # Parse string label format
-                parts = str(label).split('/')
-                # Parse useful fields
-                a_match = [p for p in parts if "A:" in p]
-                f_match = [p for p in parts if "F:" in p]
-                g_match = [p for p in parts if "G:" in p]
-
-                try:
-                    if a_match:
-                        accent_type = int(a_match[0].split(':')[1].split('_')[0])
-                        accent_info["accent_type"] = accent_type
-                    if f_match:
-                        accent_pos = int(f_match[0].split(':')[1].split('_')[0])
-                        accent_info["accent_position"] = accent_pos
-                    if g_match:
-                        accent_total = int(g_match[0].split(':')[1].split('_')[0])
-                        accent_info["total_morae"] = accent_total
-                    
-                    accent_info["accent_details"].append({
-                        "accent_type": accent_info["accent_type"],
-                        "accent_position": accent_info["accent_position"],
-                        "accent_total": accent_info["total_morae"]
-                    })
-
-                except Exception as e:
-                    print(f"Error parsing label: {label} -> {e}")
-                    continue
-        
-        # If we couldn't extract from labels, try to estimate from morae
-        if accent_info["total_morae"] == 0:
-            # Use pyopenjtalk.g2p to get morae count
-            try:
-                morae = pyopenjtalk.g2p(phrase).split(" ")
-                accent_info["total_morae"] = len(morae)
-                # Default to heiban (flat accent) if we can't determine
-                accent_info["accent_type"] = 0
-            except Exception as e:
-                print(f"Error getting morae count: {e}")
-                accent_info["total_morae"] = 0
-        
-        # Generate expected pitch pattern
-        accent_info["pitch_pattern"] = derive_pitch_pattern(
-            accent_info["accent_type"], 
-            accent_info["total_morae"]
-        )
-        
-        return accent_info
-        
-    except Exception as e:
-        print(f"Error extracting pitch accent info: {e}")
-        # Fallback: try to get morae count and use default heiban
-        try:
-            morae = pyopenjtalk.g2p(phrase).split(" ")
-            total_morae = len(morae)
-            return {
-                "accent_type": 0,  # heiban (flat)
-                "accent_position": 0,
-                "total_morae": total_morae,
-                "pitch_pattern": derive_pitch_pattern(0, total_morae),
-                "accent_details": []
-            }
-        except Exception as fallback_error:
-            print(f"Fallback error: {fallback_error}")
-            return {
-                "accent_type": 0,
-                "accent_position": 0,
-                "total_morae": 0,
-                "pitch_pattern": [],
-                "accent_details": []
-            }
 
 def derive_pitch_pattern(accent_type: int, total: int) -> List[str]:
     """
@@ -216,7 +212,7 @@ def derive_pitch_pattern(accent_type: int, total: int) -> List[str]:
 def analyze_pitch_contour(pitch_values: List[float], expected_pattern: List[str]) -> Dict:
     """
     Analyze pitch contour against expected pattern.
-    Returns pitch error analysis.
+    Returns pitch error analysis with improved logic.
     """
     if not pitch_values or not expected_pattern:
         return {
@@ -225,7 +221,7 @@ def analyze_pitch_contour(pitch_values: List[float], expected_pattern: List[str]
             "pitch_feedback": "Unable to analyze pitch"
         }
     
-    # Segment pitch values into morae (simplified approach)
+    # Segment pitch values into morae (improved approach)
     morae_count = len(expected_pattern)
     if morae_count == 0:
         return {
@@ -234,49 +230,80 @@ def analyze_pitch_contour(pitch_values: List[float], expected_pattern: List[str]
             "pitch_feedback": "No morae to analyze"
         }
     
-    # Divide pitch values into morae segments
-    segment_size = len(pitch_values) // morae_count
+    # Use a more sophisticated segmentation approach
     pitch_errors = []
     correct_pitch_count = 0
+    
+    # Calculate pitch statistics for better analysis
+    valid_pitches = [p for p in pitch_values if p > 0]
+    if not valid_pitches:
+        return {
+            "pitch_errors": [],
+            "overall_pitch_accuracy": 0.0,
+            "pitch_feedback": "No voiced sounds detected"
+        }
+    
+    # For heiban (flat accent), be more lenient since it's all low pitch
+    # Japanese pitch accent is subtle, so we need to account for natural variations
+    pitch_mean = np.mean(valid_pitches)
+    pitch_std = np.std(valid_pitches)
+    
+    # More lenient thresholds for heiban analysis
+    # Since heiban is all low, we're mainly looking for obvious high pitches
+    high_threshold = pitch_mean + 1.0 * pitch_std  # More lenient threshold
+    
+    # Segment pitch values into morae
+    segment_size = max(1, len(pitch_values) // morae_count)
     
     for i in range(morae_count):
         start_idx = i * segment_size
         end_idx = start_idx + segment_size if i < morae_count - 1 else len(pitch_values)
         
-        # Get average pitch for this mora
+        # Get pitch values for this mora
         mora_pitch_values = pitch_values[start_idx:end_idx]
-        valid_pitches = [p for p in mora_pitch_values if p > 0]
+        valid_mora_pitches = [p for p in mora_pitch_values if p > 0]
         
-        if not valid_pitches:
-            # No voiced sound in this mora
-            if expected_pattern[i] == "L":
+        if not valid_mora_pitches:
+            # No voiced sound in this mora - this is acceptable for heiban
+            correct_pitch_count += 1
+            continue
+        
+        # Calculate mora pitch characteristics
+        mora_mean = np.mean(valid_mora_pitches)
+        mora_max = np.max(valid_mora_pitches)
+        
+        # For heiban (all low), we're looking for obvious high pitches that shouldn't be there
+        # Be more lenient - only flag if it's clearly too high
+        is_obviously_high = mora_mean > high_threshold and mora_max > pitch_mean + 1.5 * pitch_std
+        expected_high = expected_pattern[i] == "H"
+        
+        if expected_high:
+            # If we expect high pitch, check if it's high enough
+            is_high_enough = mora_mean > pitch_mean + 0.5 * pitch_std
+            if is_high_enough:
                 correct_pitch_count += 1
             else:
                 pitch_errors.append({
                     "position": i,
                     "expected": expected_pattern[i],
-                    "actual": "unvoiced",
-                    "error_type": "missing_high_pitch"
+                    "actual": "L",
+                    "error_type": "missing_high_pitch",
+                    "pitch_value": mora_mean,
+                    "threshold": pitch_mean + 0.5 * pitch_std
                 })
-            continue
-        
-        avg_pitch = np.mean(valid_pitches)
-        expected_high = expected_pattern[i] == "H"
-        
-        # Simple threshold-based classification
-        # This is a simplified approach - in practice, you'd want more sophisticated analysis
-        is_high = avg_pitch > 150  # Hz threshold for "high" pitch
-        
-        if expected_high == is_high:
-            correct_pitch_count += 1
         else:
-            pitch_errors.append({
-                "position": i,
-                "expected": expected_pattern[i],
-                "actual": "H" if is_high else "L",
-                "error_type": "wrong_pitch_level",
-                "pitch_value": avg_pitch
-            })
+            # For low pitch (heiban), only flag if it's obviously too high
+            if is_obviously_high:
+                pitch_errors.append({
+                    "position": i,
+                    "expected": expected_pattern[i],
+                    "actual": "H",
+                    "error_type": "wrong_pitch_level",
+                    "pitch_value": mora_mean,
+                    "threshold": high_threshold
+                })
+            else:
+                correct_pitch_count += 1
     
     overall_accuracy = correct_pitch_count / morae_count if morae_count > 0 else 0.0
     
