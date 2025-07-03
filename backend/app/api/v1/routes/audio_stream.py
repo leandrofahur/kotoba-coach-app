@@ -7,7 +7,7 @@ import os
 import subprocess
 from pathlib import Path
 from services.whisper_service import transcribe_audio
-from services.feedback_service import calculate_similarity, label_from_score
+from services.feedback_service import analyze_comprehensive_pronunciation
 from services.pitch_service import extract_pitch_librosa
 from services.phrase_service import get_phrase_by_id
 
@@ -130,22 +130,23 @@ async def process_complete_audio(audio_chunks, phrase, websocket):
             print(f"FFmpeg error: {e.stderr.decode()}")
             raise RuntimeError(f"Audio conversion failed: {e.stderr.decode()}") from e
         
-        # Process with existing services using the converted WAV file
+        # Process with comprehensive analysis using the converted WAV file
         transcription = transcribe_audio(temp_wav_path)
-        similarity_score = calculate_similarity(transcription, phrase.text)
-        label = label_from_score(similarity_score)
         pitch_contour = extract_pitch_librosa(temp_wav_path)
         
-        print(f"Processing results - Score: {similarity_score}, Transcription: {transcription}")
+        # Comprehensive pronunciation analysis
+        analysis = analyze_comprehensive_pronunciation(
+            expected_phrase=phrase.text,
+            transcription=transcription,
+            pitch_values=pitch_contour
+        )
+        
+        print(f"Processing results - Overall Score: {analysis['overall_score']}%, Transcription: {transcription}")
         
         # Send comprehensive feedback
         await websocket.send_json({
             "status": "feedback",
-            "transcription": transcription,
-            "score": similarity_score,
-            "label": label,
-            "expected_text": phrase.text,
-            "pitch_data": pitch_contour[:10] if pitch_contour else [],
+            **analysis  # Include all analysis results
         })
         
         # Clean up temp files
