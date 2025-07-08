@@ -43,15 +43,15 @@ def analyze_comprehensive_pronunciation(expected_phrase: str, transcription: str
     morae_errors = analyze_morae_errors(expected_morae, actual_morae)
     morae_feedback = get_morae_feedback(morae_errors)
     
-    # Pitch accent analysis
-    pitch_analysis = analyze_comprehensive_pitch(expected_phrase, pitch_values)
+    # Pitch accent analysis (now with morae sufficiency check)
+    pitch_analysis = analyze_comprehensive_pitch(expected_phrase, pitch_values, actual_morae)
     
     # Calculate weighted overall score
     morae_weight = 0.6  # Morae accuracy is more important
     pitch_weight = 0.4  # Pitch accent is secondary
     
     morae_score = morae_errors["overall_accuracy"] * 100
-    pitch_score = pitch_analysis["overall_pitch_score"]
+    pitch_score = pitch_analysis["overall_pitch_score"] if pitch_analysis["overall_pitch_score"] is not None else 0
     
     weighted_score = (morae_score * morae_weight) + (pitch_score * pitch_weight)
     
@@ -83,8 +83,9 @@ def analyze_comprehensive_pronunciation(expected_phrase: str, transcription: str
             "expected_accent": pitch_analysis["expected_accent"],
             "actual_pitch_contour": pitch_analysis["actual_pitch_contour"],
             "errors": pitch_analysis["pitch_analysis"]["pitch_errors"],
-            "score": pitch_score,
-            "feedback": pitch_analysis["pitch_analysis"]["pitch_feedback"]
+            "score": pitch_analysis["overall_pitch_score"],
+            "feedback": pitch_analysis["pitch_analysis"].get("pitch_feedback"),
+            "warning": pitch_analysis["pitch_analysis"].get("warning")
         },
         
         # Detailed feedback

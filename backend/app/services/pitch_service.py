@@ -347,14 +347,39 @@ def get_pitch_accent_name(accent_type: int) -> str:
     }
     return accent_names.get(accent_type, f"accent type {accent_type}")
 
-def analyze_comprehensive_pitch(expected_phrase: str, actual_pitch_values: List[float]) -> Dict:
+def analyze_comprehensive_pitch(expected_phrase: str, actual_pitch_values: List[float], detected_morae: list = None) -> Dict:
     """
     Comprehensive pitch analysis combining accent info and contour analysis.
+    Adds a sufficiency check: if detected morae < 80% of expected, returns N/A and warning.
     """
     # Get expected pitch accent information
     accent_info = extract_pitch_accent_info(expected_phrase)
     expected_pattern = accent_info["pitch_pattern"]
-    
+    expected_morae_count = accent_info["total_morae"]
+
+    # If detected_morae is not provided, skip sufficiency check (legacy)
+    detected_morae_count = len(detected_morae) if detected_morae is not None else None
+    morae_ratio = (detected_morae_count / expected_morae_count) if (detected_morae_count is not None and expected_morae_count > 0) else 1.0
+
+    if detected_morae_count is not None and morae_ratio < 0.8:
+        return {
+            "expected_accent": {
+                "type": accent_info["accent_type"],
+                "name": get_pitch_accent_name(accent_info["accent_type"]),
+                "position": accent_info["accent_position"],
+                "total_morae": expected_morae_count,
+                "pattern": expected_pattern
+            },
+            "actual_pitch_contour": actual_pitch_values,
+            "pitch_analysis": {
+                "pitch_errors": [],
+                "overall_pitch_accuracy": None,
+                "pitch_feedback": None,
+                "warning": "Not enough audio detected to analyze pitch accent."
+            },
+            "overall_pitch_score": None
+        }
+
     # Analyze actual pitch contour
     contour_analysis = analyze_pitch_contour(actual_pitch_values, expected_pattern)
     

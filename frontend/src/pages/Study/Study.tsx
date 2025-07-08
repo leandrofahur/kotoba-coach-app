@@ -26,8 +26,9 @@ interface PitchAnalysis {
     pitch_value?: number;
     threshold?: number;
   }>;
-  score: number;
-  feedback: string;
+  score: number | null | undefined;
+  feedback: string | null;
+  warning?: string;
 }
 
 interface MoraeAnalysis {
@@ -249,7 +250,7 @@ function Study() {
                     </div>
                     <div className="flex items-center">                        
                         <p className="text-[16px] leading-6">
-                            {pronunciationScore !== null ? `${pronunciationScore}%` : ''}
+                            {pronunciationScore !== null && pronunciationScore !== undefined && !isNaN(pronunciationScore) ? `${pronunciationScore}%` : 'N/A'}
                         </p>
                     </div>
                 </div>    
@@ -283,33 +284,46 @@ function Study() {
                       </div>
                       <div className="text-xs text-gray-700 mb-1">{awesomeFeedback.morae_analysis?.feedback}</div>
                     </div>
-                                         {/* Pitch Analysis */}
-                     <div className="space-y-3">
-                       <div className="flex items-center gap-2">
-                         <div className={`w-3 h-3 rounded-full ${(awesomeFeedback.pitch_analysis?.score || 0) >= 80 ? 'bg-green-500' : (awesomeFeedback.pitch_analysis?.score || 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`} />
-                         <h3 className="font-semibold text-lg">Pitch Accent</h3>
-                         <Badge variant={(awesomeFeedback.pitch_analysis?.score || 0) >= 80 ? 'default' : (awesomeFeedback.pitch_analysis?.score || 0) >= 60 ? 'secondary' : 'destructive'}>
-                           {Math.round(awesomeFeedback.pitch_analysis?.score || 0)}%
-                         </Badge>
-                       </div>
-                      
-                      {/* Pitch Accent Type */}
-                      <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                          <strong>Accent Type:</strong> {awesomeFeedback.pitch_analysis?.expected_accent?.name}
-                        </p>
-                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                          <strong>Pattern:</strong> {awesomeFeedback.pitch_analysis?.expected_accent?.pattern?.join(' → ')}
-                        </p>
-                      </div>
-                      
-                      {/* Pitch Feedback */}
-                      {awesomeFeedback.pitch_analysis?.feedback && (
-                        <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
-                          <p className="text-sm text-amber-700 dark:text-amber-300">
-                            {awesomeFeedback.pitch_analysis?.feedback}
-                          </p>
+                    {/* Pitch Analysis */}
+                    <div className="space-y-3">
+                      {/* If pitch score is null or N/A, show warning box */}
+                      {(awesomeFeedback.pitch_analysis?.score === null || awesomeFeedback.pitch_analysis?.score === undefined) ? (
+                        <div className="flex items-center bg-orange-100 border-l-4 border-orange-500 text-orange-800 p-3 rounded my-2">
+                          <span className="mr-2 text-xl">⚠️</span>
+                          <div>
+                            <strong>Pitch Accent: N/A (not enough data)</strong>
+                            <div>
+                              {awesomeFeedback.pitch_analysis?.warning || "Please pronounce the full phrase to receive pitch accent feedback."}
+                            </div>
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${(awesomeFeedback.pitch_analysis?.score || 0) >= 80 ? 'bg-green-500' : (awesomeFeedback.pitch_analysis?.score || 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                            <h3 className="font-semibold text-lg">Pitch Accent</h3>
+                            <Badge variant={(awesomeFeedback.pitch_analysis?.score || 0) >= 80 ? 'default' : (awesomeFeedback.pitch_analysis?.score || 0) >= 60 ? 'secondary' : 'destructive'}>
+                              {Math.round(awesomeFeedback.pitch_analysis?.score || 0)}%
+                            </Badge>
+                          </div>
+                          {/* Pitch Accent Type */}
+                          <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              <strong>Accent Type:</strong> {awesomeFeedback.pitch_analysis?.expected_accent?.name}
+                            </p>
+                            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                              <strong>Pattern:</strong> {awesomeFeedback.pitch_analysis?.expected_accent?.pattern?.join(' → ')}
+                            </p>
+                          </div>
+                          {/* Pitch Feedback */}
+                          {awesomeFeedback.pitch_analysis?.feedback && (
+                            <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
+                              <p className="text-sm text-amber-700 dark:text-amber-300">
+                                {awesomeFeedback.pitch_analysis?.feedback}
+                              </p>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
