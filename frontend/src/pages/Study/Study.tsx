@@ -31,27 +31,25 @@ interface PitchAnalysis {
   warning?: string;
 }
 
-interface MoraeAnalysis {
-  expected_morae: string[];
-  actual_morae: string[];
-  errors: {
-    error_positions: number[];
-    missing_morae: string[];
-    extra_morae: string[];
-    incorrect_morae: string[];
-    overall_accuracy: number;
-  };
-  score: number;
-  feedback: string;
-}
-
 interface PronunciationFeedback {
   overall_score: number;
   overall_label: string;
   similarity_score: number;
   transcription: string;
   expected_text: string;
-  morae_analysis: MoraeAnalysis;
+  morae_analysis: {
+    expected_morae: string[];
+    actual_morae: string[];
+    errors: {
+      error_positions: number[];
+      missing_morae: string[];
+      extra_morae: string[];
+      incorrect_morae: string[];
+      overall_accuracy: number;
+    };
+    score: number;
+    feedback: string;
+  };
   pitch_analysis: PitchAnalysis;
   detailed_feedback: string;
   error_summary: {
