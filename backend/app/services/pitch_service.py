@@ -140,25 +140,22 @@ def extract_pitch_accent_info(phrase: str) -> Dict:
         if phrase in PITCH_ACCENT_DICT:
             accent_data = PITCH_ACCENT_DICT[phrase]
             morae = pyopenjtalk.g2p(phrase).split(" ")
+            pattern = derive_pitch_pattern(accent_data["type"], len(morae), morae)
             return {
                 "accent_type": accent_data["type"],
                 "accent_position": 0,  # For heiban, position is 0
                 "total_morae": len(morae),
-                "pitch_pattern": accent_data["pattern"],
+                "pitch_pattern": pattern,
                 "accent_details": [{
                     "accent_type": accent_data["type"],
                     "accent_position": 0,
                     "accent_total": len(morae)
                 }]
             }
-        
         # If not in dictionary, use morae count and default to heiban
         morae = pyopenjtalk.g2p(phrase).split(" ")
         total_morae = len(morae)
-        
-        # Generate a reasonable pattern based on morae count
-        pattern = ["L"] * total_morae  # Default to all low for heiban
-        
+        pattern = derive_pitch_pattern(0, total_morae, morae)
         return {
             "accent_type": 0,  # heiban (flat)
             "accent_position": 0,
@@ -170,7 +167,6 @@ def extract_pitch_accent_info(phrase: str) -> Dict:
                 "accent_total": total_morae
             }]
         }
-        
     except Exception as e:
         print(f"Error extracting pitch accent info: {e}")
         # Fallback: return basic info
@@ -182,18 +178,21 @@ def extract_pitch_accent_info(phrase: str) -> Dict:
             "accent_details": []
         }
 
-def derive_pitch_pattern(accent_type: int, total: int) -> List[str]:
+def derive_pitch_pattern(accent_type: int, total: int, morae: list = None) -> List[str]:
     """
     Derive expected pitch pattern based on accent type and total morae.
-    Returns a list of "H" (high) and "L" (low) pitch markers.
+    Never allow a pitch drop (downstep) after a special mora (ん, っ, ー, long vowels, diphthongs), except rare exceptions.
     """
     if total == 0:
         return []
-    
     # Japanese pitch starts low, so we start with "L"
     pattern = ["L"]
-    
+    special_morae = {"ん", "っ", "ー"}
     for i in range(1, total):
+        # If previous mora is special, do not allow downstep after it
+        if morae and i > 0 and morae[i-1] in special_morae:
+            pattern.append(pattern[-1])  # Repeat previous pitch
+            continue
         if accent_type == 0:
             # Flat accent (heiban) - all low
             pattern.append("L")
@@ -206,7 +205,6 @@ def derive_pitch_pattern(accent_type: int, total: int) -> List[str]:
         else:
             # After accent peak - low
             pattern.append("L")
-    
     return pattern
 
 def analyze_pitch_contour(pitch_values: List[float], expected_pattern: List[str]) -> Dict:

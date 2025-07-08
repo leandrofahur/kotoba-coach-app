@@ -4,17 +4,15 @@ import re
 
 def extract_morae(phrase: str) -> List[str]:
     """
-    Converts a Japanese phrase into a list of morae (hiragana units).
+    Converts a Japanese phrase into a list of romaji morae (as strings).
     """
-    g2p_hiragana = pyopenjtalk.g2p(phrase)
-    return g2p_hiragana.split(" ")
+    return pyopenjtalk.g2p(phrase, kana=False).split(" ")
 
 def extract_morae_from_transcription(transcription: str) -> List[str]:
     """
-    Extract morae from user's transcription using the same method.
+    Extract romaji morae from user's transcription (as strings).
     """
-    g2p_hiragana = pyopenjtalk.g2p(transcription)
-    return g2p_hiragana.split(" ")
+    return pyopenjtalk.g2p(transcription, kana=False).split(" ")
 
 def analyze_morae_errors(expected_morae: List[str], actual_morae: List[str]) -> Dict:
     """

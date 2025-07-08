@@ -269,6 +269,7 @@ function Study() {
                 {/* --- AWESOME FEEDBACK DEMO --- */}
                 {transcription && awesomeFeedback && (
                   <div className="mt-4 p-3 rounded-lg border border-primary bg-primary/5">
+                    {/* Remove kana/romaji toggle button */}
                     {/* Morae Feedback */}
                     <div>
                       <p className="font-bold text-primary mb-1">Morae Analysis</p>
@@ -318,7 +319,7 @@ function Study() {
                           {/* Pitch Feedback */}
                           {awesomeFeedback.pitch_analysis?.feedback && (
                             <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
-                              <p className="text-sm text-amber-700 dark:text-amber-300">
+                              <p className="text-sm text-amber-700">
                                 {awesomeFeedback.pitch_analysis?.feedback}
                               </p>
                             </div>

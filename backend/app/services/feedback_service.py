@@ -38,8 +38,8 @@ def analyze_comprehensive_pronunciation(expected_phrase: str, transcription: str
     overall_label = label_from_score(similarity_score)
     
     # Morae analysis
-    expected_morae = extract_morae(expected_phrase)
-    actual_morae = extract_morae_from_transcription(transcription)
+    expected_morae = extract_morae(expected_phrase)  # List[str]
+    actual_morae = extract_morae_from_transcription(transcription)  # List[str]
     morae_errors = analyze_morae_errors(expected_morae, actual_morae)
     morae_feedback = get_morae_feedback(morae_errors)
     
@@ -50,8 +50,13 @@ def analyze_comprehensive_pronunciation(expected_phrase: str, transcription: str
     morae_weight = 0.6  # Morae accuracy is more important
     pitch_weight = 0.4  # Pitch accent is secondary
     
-    morae_score = morae_errors["overall_accuracy"] * 100
+    morae_score = morae_errors["overall_accuracy"] * 100 if morae_errors["overall_accuracy"] is not None else 0
     pitch_score = pitch_analysis["overall_pitch_score"] if pitch_analysis["overall_pitch_score"] is not None else 0
+    # Ensure scores are numbers
+    if not isinstance(morae_score, (int, float)) or morae_score != morae_score:
+        morae_score = 0
+    if not isinstance(pitch_score, (int, float)) or pitch_score != pitch_score:
+        pitch_score = 0
     
     weighted_score = (morae_score * morae_weight) + (pitch_score * pitch_weight)
     
@@ -71,8 +76,8 @@ def analyze_comprehensive_pronunciation(expected_phrase: str, transcription: str
         
         # Morae analysis
         "morae_analysis": {
-            "expected_morae": expected_morae,
-            "actual_morae": actual_morae,
+            "expected_morae": expected_morae,  # List[str]
+            "actual_morae": actual_morae,      # List[str]
             "errors": morae_errors,
             "score": morae_score,
             "feedback": morae_feedback

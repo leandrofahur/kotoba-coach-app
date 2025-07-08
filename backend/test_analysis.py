@@ -166,6 +166,37 @@ def test_comprehensive_analysis():
             print(f"Error in analysis: {e}")
             print("-" * 50)
 
+def test_morae_edge_cases():
+    """Test morae extraction and error analysis for edge cases (long vowels, sokuon, yōon, ん, diphthongs)."""
+    print("\n=== MORAE EDGE CASES ===\n")
+    cases = [
+        ("とうきょう", ["と", "う", "きょ", "う"], "Tokyo: long vowels, yōon"),
+        ("おおさか", ["お", "お", "さ", "か"], "Osaka: double vowel"),
+        ("にっぽん", ["に", "っ", "ぽ", "ん"], "Nippon: sokuon, ん"),
+        ("きょう", ["きょ", "う"], "Kyō: yōon, long vowel"),
+        ("がっこう", ["が", "っ", "こ", "う"], "Gakkō: sokuon, long vowel"),
+        ("しゅうまつ", ["しゅ", "う", "ま", "つ"], "Shūmatsu: yōon, long vowel, sokuon"),
+        ("ほん", ["ほ", "ん"], "Hon: ん"),
+        ("ばあい", ["ば", "あ", "い"], "Baai: diphthong"),
+        ("きゃく", ["きゃ", "く"], "Kyaku: yōon"),
+        ("ちょっと", ["ちょ", "っ", "と"], "Chotto: yōon, sokuon"),
+    ]
+    for phrase, expected, desc in cases:
+        result = extract_morae(phrase)
+        print(f"{desc}\nPhrase: {phrase}\nExpected: {expected}\nExtracted: {result}\nMatch: {result == expected}\n{'-'*40}")
+
+def test_pitch_special_morae():
+    """Test pitch accent pattern generation for special morae (no downstep after ん, っ, ー)."""
+    print("\n=== PITCH ACCENT SPECIAL MORAE ===\n")
+    cases = [
+        ("にっぽん", 1, ["に", "っ", "ぽ", "ん"], "atamadaka (head-high)"),
+        ("がっこう", 2, ["が", "っ", "こ", "う"], "nakadaka (middle-high)"),
+        ("とうきょう", 0, ["と", "う", "きょ", "う"], "heiban (flat)"),
+    ]
+    for phrase, accent_type, morae, desc in cases:
+        pattern = derive_pitch_pattern(accent_type, len(morae), morae)
+        print(f"{desc}\nPhrase: {phrase}\nMorae: {morae}\nPattern: {pattern}\n{'-'*40}")
+
 def main():
     """Run all tests."""
     print("Kotoba Coach - Enhanced Analysis Test Suite")
@@ -175,6 +206,8 @@ def main():
         test_morae_analysis()
         test_pitch_accent_analysis()
         test_comprehensive_analysis()
+        test_morae_edge_cases()
+        test_pitch_special_morae()
         
         print("\n✅ All tests completed successfully!")
         print("\nKey Features Demonstrated:")
@@ -184,6 +217,8 @@ def main():
         print("• Pitch accent pattern analysis")
         print("• Comprehensive error feedback")
         print("• Weighted scoring system")
+        print("• Morae edge case handling (long vowels, sokuon, yōon, ん, diphthongs)")
+        print("• Pitch accent special morae handling (no downstep after ん, っ, ー)")
         
     except Exception as e:
         print(f"\n❌ Test failed with error: {e}")
